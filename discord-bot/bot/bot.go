@@ -28,20 +28,12 @@ func Run() {
 
     BotID = user.ID
     goBot.AddHandler(messageHandler)
-    goBot.AddHandler(OnReady)
     err = goBot.Open()
 
     if err != nil {
         return
     }
 	fmt.Println("Bot is running !")
-}
-
-// OnReady is called whenaconnection to Discord is first established
-func OnReady(s *discordgo.Session,  m *discordgo.Ready) {
-
-	// Set the playing status.
-	s.UpdateStatus(0, "@ me!")
 }
 
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {

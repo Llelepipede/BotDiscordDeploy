@@ -8,7 +8,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
 const gitDataDirectory = "../../jsonApiGuildBot"
@@ -73,11 +72,8 @@ func Pull() (*git.Repository, bool) {
 		// Repository does not exist yet, create it
 		log.Info("The Git repository does not exist yet and will be created.")
 		// Filesystem abstraction based on memory
-		fs := memfs.New()
-		fs, _ = fs.Chroot("../..")
-		// Git objects storer based on memory
 
-		repo, err := git.PlainClone("../..", false, &git.CloneOptions{
+		repo, err := git.PlainClone("./ApiData/", false, &git.CloneOptions{
 			URL:        "https://github.com/Mentor-Paris/jsonApiGuildbot",
 			RemoteName: "origin",
 		})

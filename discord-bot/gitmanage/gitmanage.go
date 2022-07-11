@@ -10,7 +10,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
-const gitDataDirectory = "../../jsonApiGuildBot"
+const gitDataDirectory = "./ApiData/"
 const defaultRemoteName = "origin"
 
 // Commit creates a commit in the current repository
@@ -80,12 +80,18 @@ func Pull() (*git.Repository, bool) {
 		if err != nil {
 			return repo, false
 		}
-	}
-	// } else {
+	} else {
 
-	// 	w, _ := repo.Worktree()
-	// 	w.Pull(url)
-	// 	//w.Pull()
-	// }
+		w, _ := repo.Worktree()
+		err = w.Pull(&git.PullOptions{
+			RemoteName: defaultRemoteName,
+		})
+		if err != nil {
+
+			log.Info("echec de pull")
+			return repo, true
+		}
+		log.Info("reussite de pull")
+	}
 	return repo, true
 }

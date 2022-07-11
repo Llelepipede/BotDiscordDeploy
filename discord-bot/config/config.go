@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"golang-discord-bot/data"
 	"io/ioutil"
 	"log"
 )
@@ -43,4 +44,43 @@ func ReadConfig() error {
 	Color_reponse = config.Color_reponse
 
 	return nil
+}
+
+func ReadApi() []data.Api {
+	var ret []data.Api
+
+	file, err := ioutil.ReadFile("./ApiData/api.json")
+
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	err = json.Unmarshal(file, &ret)
+
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	return ret
+}
+
+func ReadStud() (*[]data.Studient, error) {
+	// lie la liste des etudiant pour y trouver l'etudiant correspondant a la requète
+	file, err := ioutil.ReadFile("./stud.json")
+	var stud_list *[]data.Studient
+
+	// si on arrive pas a ouvrir le fichier json, renvoie une erreur
+	if err != nil {
+		return nil, nil
+	}
+
+	// si on arrive pas a Unmarshal le json, renvoie une erreur
+	err = json.Unmarshal(file, &stud_list)
+	if err != nil {
+
+		return nil, nil
+	}
+	return stud_list, nil
 }

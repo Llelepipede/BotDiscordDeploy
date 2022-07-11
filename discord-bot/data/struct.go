@@ -12,6 +12,19 @@ var (
 	Api_stud []Api
 )
 
+type Guild struct {
+	Nom    string
+	Point  int
+	Membre []Complete_Stud
+}
+
+type Complete_Stud struct {
+	Id     int    `json:"id"`
+	Nom    string `json:"nom"`
+	Prenom string `json:"prenom"`
+	Point  int    `json:"point"`
+}
+
 type Api struct {
 	Id    int    `json:"id"`
 	Guild string `json:"guild"`
@@ -78,8 +91,8 @@ func CreateStud() ([]byte, error) {
 
 	for i := 0; i < 100; i++ {
 		studs[i].Id = i
-		studs[i].Nom = "Nom non definie"
-		studs[i].Prenom = "Prenom non definie"
+		studs[i].Nom = "None"
+		studs[i].Prenom = "None"
 	}
 
 	file, err := json.Marshal(studs)

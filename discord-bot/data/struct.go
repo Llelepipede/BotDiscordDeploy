@@ -15,7 +15,7 @@ var (
 type Guild struct {
 	Nom    string
 	Point  int
-	Membre []Complete_Stud
+	Membre []Api
 }
 
 type Complete_Stud struct {

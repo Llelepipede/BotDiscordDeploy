@@ -61,6 +61,7 @@ func Commit() bool {
 
 	if err != nil {
 		log.WithError(err).Warn("Error during push")
+		return false
 	}
 	return true
 }

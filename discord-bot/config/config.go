@@ -13,6 +13,7 @@ var (
 	config        *configStruct
 	Color_error   int
 	Color_reponse int
+	Admin_chanel  string
 )
 
 type configStruct struct {
@@ -20,6 +21,7 @@ type configStruct struct {
 	Prefix        string `json:"prefix"`
 	Color_error   int    `json:"color_error"`
 	Color_reponse int    `json:"color_reponse"`
+	Admin_chanel  string `json:"admin_chanel"`
 }
 
 func ReadConfig() error {
@@ -42,7 +44,7 @@ func ReadConfig() error {
 	Prefix = config.Prefix
 	Color_error = config.Color_error
 	Color_reponse = config.Color_reponse
-
+	Admin_chanel = config.Admin_chanel
 	return nil
 }
 

@@ -2,14 +2,16 @@ package data
 
 import (
 	"encoding/csv"
-	"encoding/json"
+	"errors"
 	"log"
 	"os"
 )
 
 type StudentsData struct {
 	// 1. Create a struct for storing CSV lines and annotate it with JSON struct field tags
-	Nom string `json:"nom"`
+	Nom        string `json:"nom"`
+	Prenom     string `json:"prenom"`
+	ID_discord string `json:"ID"`
 }
 
 func createStudentsList(data [][]string) []StudentsData {
@@ -21,6 +23,10 @@ func createStudentsList(data [][]string) []StudentsData {
 			for j, field := range line {
 				if j == 0 {
 					rec.Nom = field
+				} else if j == 1 {
+					rec.Prenom = field
+				} else if j == 2 {
+					rec.ID_discord = field
 				}
 			}
 			StudentsList = append(StudentsList, rec)
@@ -29,12 +35,19 @@ func createStudentsList(data [][]string) []StudentsData {
 	return StudentsList
 }
 
-func StudDataGet() []Studient {
+func StudDataGet() (*[]StudentsData, error) {
 
+	// retrieve the path directory
+	path, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("error")
+	}
 	// open file
-	f, err := os.Open("Students_cleaning.csv")
+	f, err := os.Open(path + "/data/Students_cleaning.csv")
 	if err != nil {
 		log.Fatal(err)
+		return nil, errors.New("error")
 	}
 
 	// remember to close the file at the end of the program
@@ -45,20 +58,12 @@ func StudDataGet() []Studient {
 	data, err := csvReader.ReadAll()
 	if err != nil {
 		log.Fatal(err)
+		return nil, errors.New("error")
 	}
 
 	// 3. Assign successive lines of raw CSV data to fields of the created structs
 	StudentsList := createStudentsList(data)
 
-	// 4. Convert an array of structs to JSON using marshaling functions from the encoding/json package
-	jsonData, err := json.MarshalIndent(StudentsList, "", "  ")
-	if err != nil {
-		log.Fatal(err)
-	}
-	var stud *[]Studient
-
-	json.Unmarshal(jsonData, stud)
-
-	return *stud
+	return &StudentsList, nil
 	// fmt.Println(string(jsonData))
 }

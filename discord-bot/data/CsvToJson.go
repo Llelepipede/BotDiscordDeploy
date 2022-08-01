@@ -35,7 +35,7 @@ func createStudentsList(data [][]string) []StudentsData {
 	return StudentsList
 }
 
-func StudDataGet() (*[]StudentsData, error) {
+func StudDataGet() ([]StudentsData, error) {
 
 	// retrieve the path directory
 	path, err := os.Getwd()
@@ -64,6 +64,6 @@ func StudDataGet() (*[]StudentsData, error) {
 	// 3. Assign successive lines of raw CSV data to fields of the created structs
 	StudentsList := createStudentsList(data)
 
-	return &StudentsList, nil
+	return StudentsList, nil
 	// fmt.Println(string(jsonData))
 }

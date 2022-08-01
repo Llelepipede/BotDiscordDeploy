@@ -8,8 +8,9 @@ import (
 	"golang-discord-bot/gitmanage"
 	"golang-discord-bot/other"
 	"io/ioutil"
-	"log"
 	"strconv"
+
+	"github.com/apex/log"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,14 +23,14 @@ func Run() {
 	// create bot session
 	goBot, err := discordgo.New("Bot " + config.Token)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		return
 	}
 
 	// make the bot a user
 	user, err := goBot.User("@me")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		return
 	}
 
@@ -92,7 +93,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					return
 				}
 				// cherche dans le json l'eudiant en argument
-				id_stud, nope := other.Find_in_stud(response[1], *stud_list, "nom")
+				id_stud, nope := other.Find_in_stud(response[1], stud_list, "nom")
 				if !nope {
 					message := other.C_embed("ERROR", "```étudiant introuvable```", config.Color_error)
 					adresse_m := &message
@@ -116,7 +117,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 							adresse_m := &message
 							_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 						} else {
-							message := other.C_embed("GAIN DE POINT", "```"+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point total: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
+							message := other.C_embed("GAIN DE POINT", "```"+(stud_list)[id_stud].Prenom+" "+(stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point total: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
 							adresse_m := &message
 							_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 							// _, _ = s.ChannelMessageSend(m.ChannelID, "l'id de "+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" est : "+strconv.Itoa(id_stud))
@@ -143,7 +144,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				api := config.ReadApi()
 				stud, _ := data.StudDataGet()
 				to_print := ""
-				for i, v := range *stud {
+				for i, v := range stud {
 					if v.ID_discord == m.Author.ID {
 						to_print += "```" + v.Nom + " " + v.Prenom + " \n   -> guilde : " + api[i].Guild + " \n   -> point : " + strconv.Itoa(api[i].Point) + "```\n\n"
 						break
@@ -172,7 +173,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 				return
 			} else {
-				allGuild, err := other.Find_Guild(api, *stud)
+				allGuild, err := other.Find_Guild(api, stud)
 				if err != nil {
 					message := other.C_embed("ERROR", "```Probleme dans la recherche des guilde au sein de l'API```", config.Color_error)
 					adresse_m := &message
@@ -194,13 +195,13 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			} else {
 				api := config.ReadApi()
 				stud, _ := data.StudDataGet()
-				api, _ = other.Tri_Stud(api, *stud)
+				api, _ = other.Tri_Stud(api, stud)
 				to_print := ""
 				for i, v := range api {
-					if i == len(*stud)-1 {
+					if i == len(stud)-1 {
 						break
 					}
-					to_print += "``` n°: " + strconv.Itoa(i+1) + "\n" + (*stud)[v.Id].Nom + " " + (*stud)[v.Id].Prenom + " \n   -> ID : " + strconv.Itoa(v.Id) + " \n   -> guilde : " + api[v.Id].Guild + " \n   -> point : " + strconv.Itoa(v.Point) + "```\n\n"
+					to_print += "``` n°: " + strconv.Itoa(i+1) + "\n" + (stud)[v.Id].Nom + " " + (stud)[v.Id].Prenom + " \n   -> ID : " + strconv.Itoa(v.Id) + " \n   -> guilde : " + api[v.Id].Guild + " \n   -> point : " + strconv.Itoa(v.Point) + "```\n\n"
 					if i%10 == 9 {
 						message := other.C_embed("LISTE DES POINTS", to_print, config.Color_reponse)
 						adresse_m := &message
@@ -271,7 +272,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 						}
 						// sinon, cherche le nom dans la base de donnée.
 					} else {
-						id_stud, nope := other.Find_in_stud(response[2], *stud_list, "nom")
+						id_stud, nope := other.Find_in_stud(response[2], stud_list, "nom")
 						if !nope {
 							message := other.C_embed("ERROR", "```étudiant introuvable```", config.Color_error)
 							adresse_m := &message
@@ -294,7 +295,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 									adresse_m := &message
 									_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 								} else {
-									message := other.C_embed("ATTRIBUTION DE GUILDE", "```"+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Nouvelle Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
+									message := other.C_embed("ATTRIBUTION DE GUILDE", "```"+(stud_list)[id_stud].Prenom+" "+(stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Nouvelle Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
 									adresse_m := &message
 									_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 									// _, _ = s.ChannelMessageSend(m.ChannelID, "l'id de "+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" est : "+strconv.Itoa(id_stud))
@@ -340,7 +341,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 							}
 						}
 					} else {
-						id_stud, nope := other.Find_in_stud(response[2], *stud_list, "nom")
+						id_stud, nope := other.Find_in_stud(response[2], stud_list, "nom")
 						if !nope {
 							message := other.C_embed("ERROR", "```étudiant introuvable```", config.Color_error)
 							adresse_m := &message
@@ -363,7 +364,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 									adresse_m := &message
 									_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 								} else {
-									message := other.C_embed("ATTRIBUTION DES POINTS", "```"+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point total: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
+									message := other.C_embed("ATTRIBUTION DES POINTS", "```"+(stud_list)[id_stud].Prenom+" "+(stud_list)[id_stud].Nom+" \n   ->ID: "+strconv.Itoa(id_stud)+"\n   ->Point total: "+strconv.Itoa(api[id_stud].Point)+"\n   ->Guilde: "+api[id_stud].Guild+"```", config.Color_reponse)
 									adresse_m := &message
 									_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 									// _, _ = s.ChannelMessageSend(m.ChannelID, "l'id de "+(*stud_list)[id_stud].Prenom+" "+(*stud_list)[id_stud].Nom+" est : "+strconv.Itoa(id_stud))
@@ -379,40 +380,68 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// leader board
 	if StartWith(m.Content, "top") {
 		response := other.Split(m.Content)
-		if len(response) != 2 {
+		if len(response) == 1 {
+			api := config.ReadApi()
+			stud, _ := data.StudDataGet()
+			api, _ = other.Tri_Stud(api, stud)
+			to_print := ""
+			for i, v := range api[0:5] {
+				if i == len(stud)-1 {
+					break
+				}
+				to_print += "``` n°: " + strconv.Itoa(i+1) + "\n" + (stud)[v.Id].Nom + " " + (stud)[v.Id].Prenom + " \n   -> ID : " + strconv.Itoa(v.Id) + " \n   -> guilde : " + api[v.Id].Guild + " \n   -> point : " + strconv.Itoa(v.Point) + "```\n\n"
+				if i%10 == 9 {
+					message := other.C_embed("LISTE DES POINTS", to_print, config.Color_reponse)
+					adresse_m := &message
+					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+					to_print = ""
+				}
+			}
+			message := other.C_embed("LISTE DES POINTS", to_print, config.Color_reponse)
+			adresse_m := &message
+			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		} else if len(response) != 2 {
 			message := other.C_embed("ERROR", "```Argument incorrecte pour la commande \"top\"```", config.Color_error)
 			adresse_m := &message
 			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-		} else {
+		} else if len(response) == 2 {
 			if StartWith(response[1], "guilde") {
 				api := config.ReadApi()
 				stud, _ := data.StudDataGet()
-				api, _ = other.Tri_Stud(api, *stud)
-				allGuild, err := other.Find_Guild(api, *stud)
+				//api, _ = other.Tri_Stud(api, stud)
+				allGuild, err := other.Find_Guild(api, stud)
+
 				if err != nil {
 					message := other.C_embed("ERROR", "```Probleme dans la recherche des guilde au sein de l'API```", config.Color_error)
 					adresse_m := &message
 					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 					return
 				} else {
-					allGuild, _ = other.Tri_Guild(allGuild)
+					triGuild, _ := other.Tri_Guild(allGuild)
 					to_string := ""
-					for i, v := range allGuild {
-						to_string += "**" + v.Nom + "**\n" + "```" + "   ->classement: " + strconv.Itoa(i+1) + "\n   ->nombre de membre: " + strconv.Itoa(len(v.Membre)) + "```"
+					for i, v := range triGuild {
+						stud, _ = data.StudDataGet()
+						//fmt.Printf("other.List_Membre(v): %v\n", other.List_Membre(v, *stud))
+						tri, _ := other.Tri_Stud(triGuild[i].Membre, stud)
+						to_string += "**" + v.Nom + "**" + "```" +
+							"\nclassement: " + strconv.Itoa(i+1) + " | point: " + strconv.Itoa(triGuild[i].Point) +
+							"\n   ->nombre de membre: " + strconv.Itoa(len(triGuild[i].Membre)) +
+							"\n   ->top 3: " +
+							"\n      1." + (stud)[(tri[0].Id)].Nom + " " + (stud)[(tri[0].Id)].Prenom +
+							"\n         point: " + strconv.Itoa(tri[0].Point) +
+							"\n      2." + (stud)[(tri[1].Id)].Nom + " " + (stud)[(tri[1].Id)].Prenom +
+							"\n         point: " + strconv.Itoa(tri[1].Point) +
+							"\n      3." + (stud)[(tri[2].Id)].Nom + " " + (stud)[(tri[2].Id)].Prenom +
+							"\n         point: " + strconv.Itoa(tri[2].Point) +
+							"```"
+
 					}
 					message := other.C_embed("LISTE DES GUILDE", to_string, config.Color_reponse)
 					adresse_m := &message
 					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 				}
-
-			}
-			if StartWith(response[1], "all") {
-
 			}
 		}
-
-		to_do := "a faire"
-		fmt.Printf("to_do: %v\n", to_do)
 	}
 
 	// commande aide pour visualisé les utilisation des autres commandes

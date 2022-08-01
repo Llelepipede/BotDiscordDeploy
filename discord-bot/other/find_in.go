@@ -1,6 +1,7 @@
 package other
 
 import (
+	"fmt"
 	"golang-discord-bot/data"
 	"strconv"
 )
@@ -69,37 +70,41 @@ func Split(str string) []string {
 
 func Find_Guild(in []data.Api, stud []data.StudentsData) ([]data.Guild, error) {
 	var ret []data.Guild
-	var new_guild data.Guild
-	var new_member data.Api
-	var bool bool
+	new_guild := new(data.Guild)
+	new_member := new(data.Api)
+	var is_in bool
 	var guild_id int
-	for i := range stud {
-
+	for i, v := range stud {
+		new_guild = new(data.Guild)
+		new_member = new(data.Api)
+		fmt.Printf("i: %v\n", i)
 		guild_id = 0
-		bool = true
+		is_in = true
 		for y, m := range ret {
 			if in[i].Guild == m.Nom {
-				bool = false
+				is_in = false
 				guild_id = y
 				break
 			}
 		}
-		if bool {
+		if is_in {
+			fmt.Printf("création guilde %v\n", v.Nom+" "+in[i].Guild)
 			new_guild.Nom = in[i].Guild
 
 			new_member.Id = in[i].Id
 			new_member.Point = in[i].Point
 
-			new_guild.Membre = append(new_guild.Membre, new_member)
+			new_guild.Membre = append(new_guild.Membre, *new_member)
 
 			new_guild.Point = in[i].Point
 
-			ret = append(ret, new_guild)
+			ret = append(ret, *new_guild)
 		} else {
+			fmt.Printf("update %v\n", v.Nom+" "+in[i].Guild)
 			new_member.Id = in[i].Id
 			new_member.Point = in[i].Point
 
-			ret[guild_id].Membre = append(ret[guild_id].Membre, new_member)
+			ret[guild_id].Membre = append(ret[guild_id].Membre, *new_member)
 
 			ret[guild_id].Point += in[i].Point
 		}
@@ -115,13 +120,18 @@ func List_Guild(allGuild []data.Guild) string {
 	return to_string
 }
 
+// in = mon api (id,point,guilde)    with = mes etudiants (nom,prenom)
 func Tri_Stud(in []data.Api, with []data.StudentsData) ([]data.Api, error) {
-	cpy_in := in
-	cpy_with := with
+	cpy_in := make([]data.Api, len(in))
+	copy(cpy_in, in)
+
+	cpy_with := make([]data.StudentsData, len(with))
+	copy(cpy_with, with)
+
 	is_tri := false
 	for !is_tri {
 		is_tri = true
-		for i := 0; i < len(cpy_with)-1; i++ {
+		for i := 0; i < len(cpy_with)-1 && i < len(cpy_in)-1; i++ {
 			if cpy_in[i].Point < cpy_in[i+1].Point {
 				dump := cpy_in[i]
 				cpy_in[i] = cpy_in[i+1]
@@ -130,11 +140,13 @@ func Tri_Stud(in []data.Api, with []data.StudentsData) ([]data.Api, error) {
 			}
 		}
 	}
+
 	return cpy_in, nil
 }
 
 func Tri_Guild(in []data.Guild) ([]data.Guild, error) {
-	cpy_in := in
+	cpy_in := make([]data.Guild, len(in))
+	copy(cpy_in, in)
 
 	is_tri := false
 	for !is_tri {
@@ -149,4 +161,12 @@ func Tri_Guild(in []data.Guild) ([]data.Guild, error) {
 		}
 	}
 	return cpy_in, nil
+}
+
+func List_Membre(Guild data.Guild, with []data.StudentsData) string {
+	to_string := ""
+	for _, v := range Guild.Membre {
+		to_string += "nom:" + with[v.Id].Nom + " " + with[v.Id].Prenom + "\n"
+	}
+	return to_string
 }

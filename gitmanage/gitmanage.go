@@ -14,7 +14,7 @@ const gitDataDirectory = "./ApiData/"
 const defaultRemoteName = "origin"
 
 // Commit creates a commit in the current repository
-func Commit() bool {
+func Push(comment string) bool {
 	repo, err := git.PlainOpen(gitDataDirectory)
 
 	if err != nil {
@@ -33,7 +33,7 @@ func Commit() bool {
 
 	log.Info("Committing new changes...")
 	w.Add("api.json")
-	w.Commit("update api", &git.CommitOptions{
+	w.Commit(comment, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "Llelepipede",
 			Email: "pchesneau3103@gmail.com",
@@ -51,7 +51,7 @@ func Commit() bool {
 
 	auth := &http.BasicAuth{
 		Username: "Llelepipede",
-		Password: "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",
+		Password: "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",
 	}
 	log.Info("Pushing changes to remote")
 	err = repo.Push(&git.PushOptions{
@@ -63,6 +63,38 @@ func Commit() bool {
 		log.WithError(err).Warn("Error during push")
 		return false
 	}
+	return true
+}
+
+func Commit(comment string) bool {
+
+	repo, err := git.PlainOpen(gitDataDirectory)
+
+	if err != nil {
+		// Repository does not exist yet, create it
+		log.Info("The Git repository does not exist yet and will be created.")
+
+		repo, err = git.PlainInit(gitDataDirectory, false)
+	}
+
+	if err != nil {
+		log.Warn("The data folder could not be converted into a Git repository. Therefore, the versioning does not work as expected.")
+		return false
+	}
+
+	w, _ := repo.Worktree()
+
+	log.Info("Committing new changes...")
+	w.Add("api.json")
+	w.Commit(comment, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Llelepipede",
+			Email: "pchesneau3103@gmail.com",
+			When:  time.Now(),
+		},
+	})
+	fmt.Println(w.Status())
+
 	return true
 }
 

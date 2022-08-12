@@ -3,23 +3,17 @@ package data
 import (
 	"encoding/csv"
 	"errors"
+	"golang-discord-bot/dataStruct"
 	"log"
 	"os"
 )
 
-type StudentsData struct {
-	// 1. Create a struct for storing CSV lines and annotate it with JSON struct field tags
-	Nom        string `json:"nom"`
-	Prenom     string `json:"prenom"`
-	ID_discord string `json:"ID"`
-}
-
-func createStudentsList(data [][]string) []StudentsData {
+func createStudentsList(data [][]string) []dataStruct.StudentsData {
 	// convert csv lines to array of structs
-	var StudentsList []StudentsData
+	var StudentsList []dataStruct.StudentsData
 	for i, line := range data {
 		if i > 0 { // omit header line
-			var rec StudentsData
+			var rec dataStruct.StudentsData
 			for j, field := range line {
 				if j == 0 {
 					rec.Nom = field
@@ -35,7 +29,7 @@ func createStudentsList(data [][]string) []StudentsData {
 	return StudentsList
 }
 
-func StudDataGet() ([]StudentsData, error) {
+func StudDataGet() ([]dataStruct.StudentsData, error) {
 
 	// retrieve the path directory
 	path, err := os.Getwd()

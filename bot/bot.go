@@ -187,7 +187,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			}
 			// presente le leader board des guildes.
-		} else if StartWith(response[1], "guilde") {
+		} else if StartWith(response[1], "-g") {
 			all_stud := config.ReadApi()
 
 			allGuild, err := other.Find_Guild(all_stud)
@@ -204,7 +204,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			// presente le leader board des étudiants.
-		} else if StartWith(response[1], "liste") {
+		} else if StartWith(response[1], "-l") {
 			if !admin {
 				// message := other.C_embed("ERROR", "```Vous n'etes pas dans le bon salon pour faire cette commande```", config.Color_error)
 				// adresse_m := &message
@@ -528,30 +528,24 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if StartWith(m.Content, "aide") {
 		if admin {
 			message := other.C_embed("GUILD-BOT\n   ->Les commandes :eyes: ",
-				"``` aide\n   ->visualise les commandes du bot ```\n"+
-					"``` point\n   ->visualise vos points ```\n"+
-					"``` point guilde\n   ->visualise les points des guildes ```\n"+
-					"``` top\n   ->visualise le top 5 des étudiants de chaque guilde ```\n",
+				config.Aide_point+
+					config.Aide_top,
 				config.Color_reponse)
 			adresse_m := &message
 			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 			message = other.C_embed("GUILD-BOT\n\n----ADMIN----",
-				"``` point liste\n\t\t-> Visualise les points de tout les étudiants ```\n"+
-					config.Aide_add+config.Aide_remove+config.Aide_report+
-					"\n``` set\n   ->change la guilde, les points, ou les crédits de l'étudiant pour la valeur precisé.\n"+
-					"\t{nom | all}\t-> Precise l'etudiant qui doit avoir des valeur modifié. si all est ecrit , cela siblera toute la base de donnée. (1 seul element)\n"+
-					"\t{point | guild | credit}\t-> Precise la valeur a changer. (1 seul element)\n"+
-					"\t{valeur}\t-> Valeur a affecté a/aux étudiant/s cible. (1 seul element)```\n"+
-					"``` push\n\t> Sauvegarde sur git les données ```\n",
+				config.Aide_point+
+					config.Aide_add+
+					config.Aide_remove+
+					config.Aide_set+
+					config.Aide_report,
 				config.Color_reponse)
 			adresse_m = &message
 			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 		} else {
 			message := other.C_embed("GUILD-BOT\n   ->Les commandes",
-				"``` aide\n   ->visualise les commandes du bot ```\n"+
-					"``` point\n   ->visualise vos points ```\n"+
-					"``` point guilde\n   ->visualise les points des guildes ```\n"+
-					"``` top\n   ->visualise le top 3 des étudiants de chaque guilde \n       <<EN DEVELOPEMENT>> ```\n",
+				config.Aide_point+
+					config.Aide_top,
 				config.Color_reponse)
 			adresse_m := &message
 			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)

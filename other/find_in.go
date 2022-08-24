@@ -12,10 +12,10 @@ import (
 func Find_in_stud(to_find string, in []dataStruct.Complete_Stud, by_what string) (int, bool) {
 	var ret int
 	for i, v := range in {
-		if v.Nom == to_find && (by_what == "Nom" || by_what == "nom") {
+		if strings.EqualFold(v.Nom, to_find) && (by_what == "Nom" || by_what == "nom") {
 			return i, true
 		}
-		if v.Prenom == to_find && (by_what == "Prenom" || by_what == "prenom") {
+		if strings.EqualFold(v.Prenom, to_find) && (by_what == "Prenom" || by_what == "prenom") {
 			return i, true
 		}
 	}
@@ -255,13 +255,13 @@ func Where(splited []string, from []dataStruct.Complete_Stud, get []int) []strin
 		for range from {
 			filter = append(filter, true)
 		}
-		return show(from, get, filter)
+		return Show(from, get, filter)
 	}
 	if strings.ToUpper(splited[0]) != "WHERE" {
 		for range from {
 			filter = append(filter, true)
 		}
-		return show(from, get, filter)
+		return Show(from, get, filter)
 	}
 	if len(splited)%4 != 0 {
 		return nil
@@ -292,10 +292,10 @@ func Where(splited []string, from []dataStruct.Complete_Stud, get []int) []strin
 
 		}
 	}
-	return show(from, get, filter)
+	return Show(from, get, filter)
 }
 
-func show(from []dataStruct.Complete_Stud, get []int, filter []bool) []string {
+func Show(from []dataStruct.Complete_Stud, get []int, filter []bool) []string {
 	var ret []string
 	if filter == nil {
 		return nil
@@ -487,7 +487,7 @@ func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 	if (indexEtud == -1) || (indexType == -1) || (value == -1) {
 		return ret, -1, err
 	} else {
-		for j, c := range from {
+		for j, c := range ret {
 
 			Sample := reflect.ValueOf(&new_value).Elem()
 			if j == indexEtud {
@@ -499,7 +499,7 @@ func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 						Sample.Field(i).SetInt(Sample.Field(i).Int() + int64(value))
 					}
 				}
-				from[indexEtud] = new_value
+				ret[indexEtud] = new_value
 			}
 
 		}
@@ -570,7 +570,105 @@ func Remove(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Com
 						Sample.Field(i).SetInt(Sample.Field(i).Int() - int64(value))
 					}
 				}
-				from[indexEtud] = new_value
+				ret[indexEtud] = new_value
+			}
+
+		}
+		return ret, indexEtud, err
+	}
+}
+
+func Set(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Complete_Stud, []bool, error) {
+	ret := from
+
+	var err error
+	var new_value dataStruct.Complete_Stud
+
+	indexType := -1
+	indexTypeWhere := -1
+	var indexEtud []bool
+	value := ""
+
+	for _, v := range splited[0:] {
+		splice := Split(v)
+		switch splice[0] {
+		case "t":
+			if len(splice) == 4 {
+				if splice[2] == "<=" {
+					for _, c := range from {
+						Sample := reflect.ValueOf(&c).Elem()
+						for i := 0; i < Sample.NumField(); i++ {
+							if strings.EqualFold(splice[3], Sample.Type().Field(i).Name) {
+								indexType = i
+							}
+						}
+					}
+					if indexType != -1 {
+						value = splice[1]
+					} else {
+						return ret, indexEtud, err
+					}
+				} else if splice[2] == "=>" {
+					for _, c := range from {
+						Sample := reflect.ValueOf(&c).Elem()
+						for i := 0; i < Sample.NumField(); i++ {
+							if strings.EqualFold(splice[1], Sample.Type().Field(i).Name) {
+								indexType = i
+							}
+						}
+					}
+					if indexType != -1 {
+						value = splice[3]
+					} else {
+						return ret, indexEtud, err
+					}
+				} else {
+					return ret, indexEtud, err
+				}
+			} else {
+				return ret, indexEtud, err
+			}
+		case "w":
+			if len(splice) == 4 {
+				for _, c := range from {
+					Sample := reflect.ValueOf(&c).Elem()
+					for i := 0; i < Sample.NumField(); i++ {
+						if strings.EqualFold(splice[1], Sample.Type().Field(i).Name) {
+							indexTypeWhere = i
+						}
+					}
+				}
+				indexEtud = opperator(indexTypeWhere, splice[2], splice[3], from)
+			} else {
+				return ret, indexEtud, err
+			}
+		default:
+			return ret, indexEtud, err
+		}
+	}
+	if len(indexEtud) == 0 || (indexType == -1) || (value == "") {
+		return ret, indexEtud, err
+	} else {
+		for j, c := range from {
+			new_value = c
+			Sample := reflect.ValueOf(&new_value).Elem()
+			if indexEtud[j] {
+				for i := 0; i < Sample.NumField(); i++ {
+					if i == indexType {
+						if Sample.Type().Field(i).Type.Name() == "string" {
+							log.Info("attribution d'un string")
+							Sample.Field(i).SetString(value)
+						} else if Sample.Type().Field(i).Type.Name() == "int" {
+							inted, err := strconv.Atoi(value)
+							if err != nil {
+								return ret, indexEtud, err
+							}
+							log.Info("attribution d'un int")
+							Sample.Field(i).SetInt(int64(inted))
+						}
+					}
+				}
+				ret[j] = new_value
 			}
 
 		}

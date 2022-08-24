@@ -1,10 +1,16 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"golang-discord-bot/dataStruct"
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -14,6 +20,8 @@ var (
 	Color_error   int
 	Color_reponse int
 	Admin_chanel  string
+	ApiLink       string
+	ApiLog        string
 	Aide_report   string
 	Aide_remove   string
 	Aide_add      string
@@ -31,6 +39,8 @@ type configStruct struct {
 	Color_error   int    `json:"color_error"`
 	Color_reponse int    `json:"color_reponse"`
 	Admin_chanel  string `json:"admin_chanel"`
+	ApiLink       string `json:"apiLink"`
+	ApiLog        string `json:"apiLog"`
 }
 
 func ReadConfig() error {
@@ -54,27 +64,36 @@ func ReadConfig() error {
 	Color_error = config.Color_error
 	Color_reponse = config.Color_reponse
 	Admin_chanel = config.Admin_chanel
+	ApiLink = config.ApiLink
+	ApiLog = config.ApiLog
 	return nil
 }
 
-func ReadApi() []dataStruct.Complete_Stud {
-	var ret []dataStruct.Complete_Stud
-
-	file, err := ioutil.ReadFile("./ApiData/api.json")
-
+func ReadApi() ([]dataStruct.Complete_Stud, []dataStruct.Complete_Stud) {
+	ret := new([]dataStruct.Complete_Stud)
+	ret2 := new([]dataStruct.Complete_Stud)
+	link := config.ApiLink
+	res, err := http.Get(link)
 	if err != nil {
 		log.Fatal(err)
-		return nil
 	}
-
-	err = json.Unmarshal(file, &ret)
-
+	body, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode > 299 {
+		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	}
 	if err != nil {
 		log.Fatal(err)
-		return nil
 	}
-
-	return ret
+	err = json.Unmarshal(body, ret)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(body, ret2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return *ret, *ret2
 }
 
 func ReadLogs() []dataStruct.Logs {
@@ -116,6 +135,65 @@ func ReadStud() (*[]dataStruct.Studient, error) {
 	return stud_list, nil
 }
 
+func UpdateStud(api []dataStruct.Complete_Stud) error {
+
+	client := &http.Client{}
+	for _, v := range api {
+		payload, err := json.Marshal(v)
+		to_ret := ApiLink
+		Sample := reflect.ValueOf(&v).Elem()
+		to_ret += "?"
+		for i := 0; i < Sample.NumField(); i++ {
+			if i != 0 {
+				to_ret += "&"
+			}
+			to_ret += Sample.Type().Field(i).Name + "="
+			if strings.EqualFold(Sample.Type().Field(i).Type.Name(), "string") {
+				to_ret += Sample.Field(i).String()
+			}
+			if strings.EqualFold(Sample.Type().Field(i).Type.Name(), "int") {
+				to_ret += strconv.Itoa(int(Sample.Field(i).Int()))
+			}
+		}
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		// 3.
+		req, err := http.NewRequest(http.MethodPatch, to_ret, bytes.NewBuffer(payload))
+		req.Header.Set("Accept", " application/json")
+		req.Header.Set("Authorization", "Bearer rnd_29L4LSmlKTj6GjcEuO9YJU66su8F")
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		// 4.
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		// 5.
+		defer resp.Body.Close()
+
+		// 6.
+		_, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		// log.Println("-------------")
+		// log.Println(string(body))
+		// fmt.Printf("v: %v\n", v)
+		// fmt.Printf("req: %v\n", req)
+
+	}
+	return nil
+}
+
 func Aide() {
 	Aide_report = "``` report\n\t\t-> Ajoute un log a l'étudiant cible. Necessite le paramètre -c, -m, -e, -t, et -v\n```" +
 		"```\t-e\t-> La chaine de caractère suivante sera considéré comme le nom et prenom de l'étudiant , quelque que soit l'ordre (2 elements en général)\n```" +
@@ -130,7 +208,7 @@ func Aide() {
 		"```\t-t\t-> La chaine de caractère suivante sera considéré comme le nom de la variable a modifié. (1 seul element)\n```" +
 		"```\t-v\t-> La chaine de caractère suivante sera considéré comme la valeur a retirer a la variable t. (1 seul element)\n```" +
 		"```\tEXEMPLE: Reduire les crédits de l'étudiant Paul de 100\n\t\t-> $:remove -e Paul CHESNEAU -t credit -v 100```\n\n"
-	Aide_add = "``` add\n\t\t-> Ajoute une valeur v a une variable t l'etudiant cible. Necessite le paramètre -e, -t, et -v\n```" +
+	Aide_add = "``` add\n\t\t-> Ajoute une valeur v a une variable t à l'étudiant cible. Necessite le paramètre -e, -t, et -v\n```" +
 		"```\t-e\t-> La chaine de caractère suivante sera considéré comme le nom et prenom de l'étudiant , quelque que soit l'ordre (2 elements en général)\n```" +
 		"```\t-t\t-> La chaine de caractère suivante sera considéré comme le nom de la variable a modifié. (1 seul element)\n```" +
 		"```\t-v\t-> La chaine de caractère suivante sera considéré comme la valeur a ajouté a la variable t. (1 seul element)\n```" +

@@ -3,5 +3,7 @@
     "prefix": "!",
     "color_error": 15871749,
     "color_reponse": 3847156,
-    "admin_chanel": "996334273638436864"
+    "admin_chanel": "996334273638436864",
+    "apiLink":"https://dashboard-ytrack.onrender.com/go-bot",
+    "apiLog":""
 }

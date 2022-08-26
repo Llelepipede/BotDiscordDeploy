@@ -203,13 +203,15 @@ func Aide() {
 		"```\t-m\t-> La chaine de caractère suivante sera considéré comme le mentor ayant ecrit ce message. (X elements)\n```" +
 		"```\t-d\t-> La chaine de caractère suivante sera considéré comme la description du report. (X elements)\n```" +
 		"```\tEXEMPLE: Augmenter les crédits de l'étudiant Paul de 100 et le certifié dans les logs\n\t\t-> $:report -d à craché sur la table -m Rayane Mokri -c add -e Paul CHESNEAU -t credit -v 100```\n"
-	Aide_remove = "``` remove\n\t\t-> Retire une valeur v a une variable t l'etudiant cible. Necessite le paramètre -e, -t, et -v\n```" +
+	Aide_remove = "``` remove\n\t\t-> Retire une valeur v a une variable t l'etudiant cible. Necessite le paramètre -e (ou -w), -t, et -v\n```" +
 		"```\t-e\t-> La chaine de caractère suivante sera considéré comme le nom et prenom de l'étudiant , quelque que soit l'ordre (2 elements en général)\n```" +
+		"```\t-w\t-> La chaine de caractère suivante sera considéré comme la condition suffisante pour affecté l'etudiant par la modification. implique que la comande puisse cibler plusieurs personnes. (3 element de la forme {Variable Condition Valeur})\n```" +
 		"```\t-t\t-> La chaine de caractère suivante sera considéré comme le nom de la variable a modifié. (1 seul element)\n```" +
 		"```\t-v\t-> La chaine de caractère suivante sera considéré comme la valeur a retirer a la variable t. (1 seul element)\n```" +
 		"```\tEXEMPLE: Reduire les crédits de l'étudiant Paul de 100\n\t\t-> $:remove -e Paul CHESNEAU -t credit -v 100```\n\n"
-	Aide_add = "``` add\n\t\t-> Ajoute une valeur v a une variable t à l'étudiant cible. Necessite le paramètre -e, -t, et -v\n```" +
+	Aide_add = "``` add\n\t\t-> Ajoute une valeur v a une variable t à l'étudiant cible. Necessite le paramètre -e (ou -w), -t, et -v\n```" +
 		"```\t-e\t-> La chaine de caractère suivante sera considéré comme le nom et prenom de l'étudiant , quelque que soit l'ordre (2 elements en général)\n```" +
+		"```\t-w\t-> La chaine de caractère suivante sera considéré comme la condition sifisante pour affecté l'etudiant par la modification. implique que la comande puisse ciblé plusieur personne. (3 element de la forme {Variable Condition Valeur})\n```" +
 		"```\t-t\t-> La chaine de caractère suivante sera considéré comme le nom de la variable a modifié. (1 seul element)\n```" +
 		"```\t-v\t-> La chaine de caractère suivante sera considéré comme la valeur a ajouté a la variable t. (1 seul element)\n```" +
 		"```\tEXEMPLE: Augmenter les points de l'étudiant Paul de 50\n\t\t-> $:add -e Paul CHESNEAU -t point -v 50```\n\n"

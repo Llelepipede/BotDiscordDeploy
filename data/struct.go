@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -75,35 +76,41 @@ func AddLogsALL(from []dataStruct.Complete_Stud) {
 	}
 }
 
-func AddLog(comment string, from []dataStruct.Complete_Stud, logs []dataStruct.Logs) ([]dataStruct.Logs, []dataStruct.Complete_Stud, int) {
+func AddLog(comment string, from []dataStruct.Complete_Stud, logs []dataStruct.Logs) ([]dataStruct.Logs, []dataStruct.Complete_Stud, []bool) {
 	ret := logs
 	ret1 := from
 	var indexOfStud = -1
-	var ind = 0
+	var ind []bool
 	var err error
 	newlog := new(dataStruct.Log)
 	clause := ""
 	typeOf := ""
 	value := ""
 	etud := ""
+	indexTypeWhere := 0
 
 	splited := other.Splitdot(comment, " -")
 	if len(splited) != 7 {
-		return nil, nil, 0
+		return nil, nil, ind
 	}
 	newlog.Mentor = "non renseigné"
 	wrong := false
 	//report -e {prenom nom} -m {prenom_mentor} -d {comment ...} -c remove credit XXX
 	for _, v := range splited[1:] {
 		splice := other.Split(v)
-		if strings.EqualFold(splice[0], "e") {
-			for j, m := range logs {
-				if (strings.EqualFold(m.Nom, splice[1]) && strings.EqualFold(m.Prenom, splice[2])) ||
-					(strings.EqualFold(m.Nom, splice[2]) && strings.EqualFold(m.Prenom, splice[1])) {
-					fmt.Printf("\"prout\": %v\n", j)
-					indexOfStud = j
-					etud = v
+		if strings.EqualFold(splice[0], "w") {
+			if len(splice) == 4 {
+				for _, c := range from {
+					Sample := reflect.ValueOf(&c).Elem()
+					for i := 0; i < Sample.NumField(); i++ {
+						if strings.EqualFold(splice[1], Sample.Type().Field(i).Name) {
+							indexTypeWhere = i
+						}
+					}
 				}
+				ind = other.Opperator(indexTypeWhere, splice[2], splice[3], from)
+			} else {
+				return ret, ret1, ind
 			}
 			newlog.Date = time.Now().String()
 		} else if strings.EqualFold(splice[0], "m") {
@@ -131,25 +138,28 @@ func AddLog(comment string, from []dataStruct.Complete_Stud, logs []dataStruct.L
 			default:
 				err = errors.New("wrong commande")
 			}
-
 			clause = ""
 		}
 	}
 	fmt.Printf("wrong: %v\n", wrong)
-	if wrong || err != nil || ind == -1 {
-		return nil, nil, indexOfStud
+	if wrong || err != nil || len(ind) != 0 {
+		return nil, nil, ind
 	} else {
 		if indexOfStud != -1 {
 			if err != nil {
-				return nil, nil, indexOfStud
+				return nil, nil, ind
 			} else {
-				ret[indexOfStud].Log = append(ret[indexOfStud].Log, *newlog)
-				fmt.Printf(" OK: %v\n", ret[indexOfStud].Log)
-				return ret, ret1, indexOfStud
+				for i, v := range ind {
+					if v {
+						ret[i].Log = append(ret[i].Log, *newlog)
+						fmt.Printf(" OK: %v\n", ret[i].Log)
+					}
+				}
+				return ret, ret1, ind
 			}
 
 		} else {
-			return nil, nil, indexOfStud
+			return nil, nil, ind
 		}
 
 	}

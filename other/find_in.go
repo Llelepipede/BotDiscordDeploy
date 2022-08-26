@@ -283,9 +283,9 @@ func Where(splited []string, from []dataStruct.Complete_Stud, get []int) []strin
 				opperand = v
 			} else {
 				if j/4 == 0 {
-					filter = opperator(whereInd, opperand, v, from)
+					filter = Opperator(whereInd, opperand, v, from)
 				} else {
-					filter = WhereAdd(filter, opperator(whereInd, opperand, v, from))
+					filter = WhereAdd(filter, Opperator(whereInd, opperand, v, from))
 				}
 
 			}
@@ -323,7 +323,7 @@ func Show(from []dataStruct.Complete_Stud, get []int, filter []bool) []string {
 	return ret
 }
 
-func opperator(whereInd int, opperand string, whereCond string, from []dataStruct.Complete_Stud) []bool {
+func Opperator(whereInd int, opperand string, whereCond string, from []dataStruct.Complete_Stud) []bool {
 	var retBool []bool
 	var toWorkWithInt int
 	var toWorkWithStr string
@@ -436,15 +436,16 @@ func WhereAdd(first []bool, second []bool) []bool {
 	return ret
 }
 
-func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Complete_Stud, int, error) {
+func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Complete_Stud, []bool, error) {
 	ret := from
 
 	var err error
 	var new_value dataStruct.Complete_Stud
 
 	indexType := -1
-	indexEtud := -1
-	value := -1
+	indexTypeWhere := -1
+	var indexEtud []bool
+	value := ""
 
 	for _, v := range splited[0:] {
 		splice := Split(v)
@@ -461,45 +462,47 @@ func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 					}
 				}
 			}
-		case "e":
-			if len(splice) == 3 {
-				for i, c := range from {
-					if strings.EqualFold(splice[1], c.Nom) && strings.EqualFold(splice[2], c.Prenom) ||
-						strings.EqualFold(splice[2], c.Nom) && strings.EqualFold(splice[1], c.Prenom) {
-						indexEtud = i
+		case "w":
+			if len(splice) == 4 {
+				for _, c := range from {
+					Sample := reflect.ValueOf(&c).Elem()
+					for i := 0; i < Sample.NumField(); i++ {
+						if strings.EqualFold(splice[1], Sample.Type().Field(i).Name) {
+							indexTypeWhere = i
+						}
 					}
-
 				}
+				indexEtud = Opperator(indexTypeWhere, splice[2], splice[3], from)
+			} else {
+				return ret, indexEtud, err
 			}
 		case "v":
 			if len(splice) == 2 {
-				value, err = strconv.Atoi(splice[1])
-				if err != nil {
-					return ret, indexEtud, err
-				}
+				value = splice[1]
+
 			}
 		default:
-
 			return ret, indexEtud, err
 		}
 	}
-	log.Info(strconv.Itoa(indexEtud) + " | " + strconv.Itoa(indexType) + " | " + strconv.Itoa(value))
-	if (indexEtud == -1) || (indexType == -1) || (value == -1) {
-		return ret, -1, err
+	log.Info("taille de la liste d'étudiant:" + strconv.Itoa(len(indexEtud)))
+	log.Info("index de la variable cible:" + strconv.Itoa(indexType))
+	log.Info("index de la valeur a attribuer :" + value)
+	if len(indexEtud) == 0 || (indexType == -1) || (value == "") {
+		return ret, indexEtud, err
 	} else {
-		for j, c := range ret {
-
+		for j, c := range from {
+			new_value = c
 			Sample := reflect.ValueOf(&new_value).Elem()
-			if j == indexEtud {
-				new_value = c
-				log.Info(strconv.Itoa(c.Point))
+			if indexEtud[j] {
 				for i := 0; i < Sample.NumField(); i++ {
 					if i == indexType {
-						log.Info(strconv.Itoa(int(Sample.Field(i).Int() + int64(value))))
-						Sample.Field(i).SetInt(Sample.Field(i).Int() + int64(value))
+						inted, _ := strconv.Atoi(value)
+						log.Info(strconv.Itoa(int(Sample.Field(i).Int() + int64(inted))))
+						Sample.Field(i).SetInt(Sample.Field(i).Int() + int64(inted))
 					}
 				}
-				ret[indexEtud] = new_value
+				ret[j] = new_value
 			}
 
 		}
@@ -507,15 +510,16 @@ func Add(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 	}
 }
 
-func Remove(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Complete_Stud, int, error) {
+func Remove(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Complete_Stud, []bool, error) {
 	ret := from
 
 	var err error
 	var new_value dataStruct.Complete_Stud
 
 	indexType := -1
-	indexEtud := -1
-	value := -1
+	indexTypeWhere := -1
+	var indexEtud []bool
+	value := ""
 
 	for _, v := range splited[0:] {
 		splice := Split(v)
@@ -532,45 +536,44 @@ func Remove(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Com
 					}
 				}
 			}
-		case "e":
-			if len(splice) == 3 {
-				for i, c := range from {
-					if strings.EqualFold(splice[1], c.Nom) && strings.EqualFold(splice[2], c.Prenom) ||
-						strings.EqualFold(splice[2], c.Nom) && strings.EqualFold(splice[1], c.Prenom) {
-						indexEtud = i
+		case "w":
+			if len(splice) == 4 {
+				for _, c := range from {
+					Sample := reflect.ValueOf(&c).Elem()
+					for i := 0; i < Sample.NumField(); i++ {
+						if strings.EqualFold(splice[1], Sample.Type().Field(i).Name) {
+							indexTypeWhere = i
+						}
 					}
-
 				}
+				indexEtud = Opperator(indexTypeWhere, splice[2], splice[3], from)
+			} else {
+				return ret, indexEtud, err
 			}
 		case "v":
 			if len(splice) == 2 {
-				value, err = strconv.Atoi(splice[1])
-				if err != nil {
-					return ret, indexEtud, err
-				}
+				value = splice[1]
+
 			}
 		default:
-
 			return ret, indexEtud, err
 		}
 	}
-	log.Info(strconv.Itoa(indexEtud) + " | " + strconv.Itoa(indexType) + " | " + strconv.Itoa(value))
-	if (indexEtud == -1) || (indexType == -1) || (value == -1) {
-		return ret, -1, err
+	if len(indexEtud) == 0 || (indexType == -1) || (value == "") {
+		return ret, indexEtud, err
 	} else {
 		for j, c := range from {
-
+			new_value = c
 			Sample := reflect.ValueOf(&new_value).Elem()
-			if j == indexEtud {
-				new_value = c
-				log.Info(strconv.Itoa(c.Point))
+			if indexEtud[j] {
 				for i := 0; i < Sample.NumField(); i++ {
 					if i == indexType {
-						log.Info(strconv.Itoa(int(Sample.Field(i).Int() - int64(value))))
-						Sample.Field(i).SetInt(Sample.Field(i).Int() - int64(value))
+						inted, _ := strconv.Atoi(value)
+						log.Info(strconv.Itoa(int(Sample.Field(i).Int() - int64(inted))))
+						Sample.Field(i).SetInt(Sample.Field(i).Int() - int64(inted))
 					}
 				}
-				ret[indexEtud] = new_value
+				ret[j] = new_value
 			}
 
 		}
@@ -592,7 +595,7 @@ func Set(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 	for _, v := range splited[0:] {
 		splice := Split(v)
 		switch splice[0] {
-		case "t":
+		case "s":
 			if len(splice) == 4 {
 				if splice[2] == "<=" {
 					for _, c := range from {
@@ -638,7 +641,7 @@ func Set(splited []string, from []dataStruct.Complete_Stud) ([]dataStruct.Comple
 						}
 					}
 				}
-				indexEtud = opperator(indexTypeWhere, splice[2], splice[3], from)
+				indexEtud = Opperator(indexTypeWhere, splice[2], splice[3], from)
 			} else {
 				return ret, indexEtud, err
 			}

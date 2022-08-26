@@ -1,14 +1,11 @@
 package bot
 
 import (
-	"encoding/json"
 	"fmt"
 	"golang-discord-bot/config"
-	"golang-discord-bot/data"
 	"golang-discord-bot/dataStruct"
 	"golang-discord-bot/gitmanage"
 	"golang-discord-bot/other"
-	"io/ioutil"
 	"reflect"
 	"strconv"
 
@@ -74,28 +71,55 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 			} else {
 
-				all_stud, all_stud_other := config.ReadApi()
+				all_stud, _ := config.ReadApi()
 
 				all_stud, indexEtud, _ := other.Add(splited[1:], all_stud)
-				if indexEtud == -1 {
+				if len(indexEtud) == 0 {
 					message := other.C_embed("ERROR", "```erreur de la fonction add```", config.Color_error)
 					adresse_m := &message
 					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 				} else {
-					message := other.C_embed("GAIN DE POINT", "```EN COURS\n\n"+all_stud_other[indexEtud].Prenom+" "+all_stud_other[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud_other[indexEtud].Point)+"\n   ->Guilde: "+all_stud_other[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud_other[indexEtud].Credit)+"```", config.Color_reponse)
+					message := other.C_embed("ATTRIBUTION DE VALEUR", "En cours ...", config.Color_reponse)
 					adresse_m := &message
 					embed_message, _ := s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-					err := config.UpdateStud(all_stud)
 
+					log.Info("envoie des donnée a l'api")
+					err := config.UpdateStud(all_stud)
+					log.Info("envoie des donnée a l'api fini")
 					if err != nil {
-						message := other.C_embed("GAIN DE POINT ERROR", "```"+all_stud_other[indexEtud].Prenom+" "+all_stud_other[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud_other[indexEtud].Point)+"\n   ->Guilde: "+all_stud_other[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud_other[indexEtud].Credit)+"```", config.Color_error)
-						adresse_m := &message
-						s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+
 					} else {
-						message := other.C_embed("GAIN DE POINT", "```"+all_stud[indexEtud].Prenom+" "+all_stud[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud[indexEtud].Point)+"\n   ->Guilde: "+all_stud[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud[indexEtud].Credit)+"```", config.Color_reponse)
+						message := other.C_embed("ATTRIBUTION DE VALEUR", "```"+"En cours ... réussi"+"```", config.Color_reponse)
 						adresse_m := &message
 						s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+						to_print := ""
+						var get []int
+						for j := 0; j < reflect.ValueOf(&all_stud[0]).Elem().NumField(); j++ {
+							get = append(get, j)
+						}
+						for i, v := range other.Show(all_stud, get, indexEtud) {
+							to_print += "```" + v + "```"
+							if i%10 == 9 && i != len(get)-1 {
+								message := other.C_embed("RESULTAT DU CHANGEMENT", to_print, config.Color_reponse)
+								adresse_m := &message
+								_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+								to_print = ""
+							}
+						}
+						message = other.C_embed("RESULTAT DE LA CHANGEMENT", to_print, config.Color_reponse)
+						adresse_m = &message
+						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 					}
+
+					// if err != nil {
+					// 	message := other.C_embed("GAIN DE POINT ERROR", "```"+all_stud_other[indexEtud].Prenom+" "+all_stud_other[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud_other[indexEtud].Point)+"\n   ->Guilde: "+all_stud_other[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud_other[indexEtud].Credit)+"```", config.Color_error)
+					// 	adresse_m := &message
+					// 	s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+					// } else {
+					// 	message := other.C_embed("GAIN DE POINT", "```"+all_stud[indexEtud].Prenom+" "+all_stud[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud[indexEtud].Point)+"\n   ->Guilde: "+all_stud[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud[indexEtud].Credit)+"```", config.Color_reponse)
+					// 	adresse_m := &message
+					// 	s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+					// }
 				}
 
 			}
@@ -114,30 +138,46 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 			} else {
 
-				all_stud, all_stud_other := config.ReadApi()
+				all_stud, _ := config.ReadApi()
 
 				all_stud, indexEtud, _ := other.Remove(splited[1:], all_stud)
-				if indexEtud == -1 {
-					message := other.C_embed("ERROR", "```erreur de la fonction remove```", config.Color_error)
+				if len(indexEtud) != 0 {
+					message := other.C_embed("ERROR", "```erreur de la fonction add```", config.Color_error)
 					adresse_m := &message
 					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 				} else {
-					message := other.C_embed("RETRAIT DE POINT", "```EN COURS\n\n"+all_stud_other[indexEtud].Prenom+" "+all_stud_other[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(all_stud_other[indexEtud].Id)+"\n   ->Point total: "+strconv.Itoa(all_stud_other[indexEtud].Point)+"\n   ->Guilde: "+all_stud_other[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud_other[indexEtud].Credit)+"```", config.Color_reponse)
+					message := other.C_embed("ATTRIBUTION DE VALEUR", "En cours ...", config.Color_reponse)
 					adresse_m := &message
 					embed_message, _ := s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-					err := config.UpdateStud(all_stud)
 
+					log.Info("envoie des donnée a l'api")
+					err := config.UpdateStud(all_stud)
+					log.Info("envoie des donnée a l'api fini")
 					if err != nil {
-						message := other.C_embed("ERROR", "```l'ecriture dans le fichier api.json a échoué```", config.Color_error)
-						adresse_m := &message
-						s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+
 					} else {
-						message := other.C_embed("RETRAIT DE POINT", "```"+all_stud[indexEtud].Prenom+" "+all_stud[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud[indexEtud].Point)+"\n   ->Guilde: "+all_stud[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud[indexEtud].Credit)+"```", config.Color_reponse)
+						message := other.C_embed("ATTRIBUTION DE VALEUR", "```"+"En cours ... réussi"+"```", config.Color_reponse)
 						adresse_m := &message
 						s.ChannelMessageEditEmbed(m.ChannelID, embed_message.ID, adresse_m)
+						to_print := ""
+						var get []int
+						for j := 0; j < reflect.ValueOf(&all_stud[0]).Elem().NumField(); j++ {
+							get = append(get, j)
+						}
+						for i, v := range other.Show(all_stud, get, indexEtud) {
+							to_print += "```" + v + "```"
+							if i%10 == 9 && i != len(get)-1 {
+								message := other.C_embed("RESULTAT DU CHANGEMENT", to_print, config.Color_reponse)
+								adresse_m := &message
+								_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+								to_print = ""
+							}
+						}
+						message = other.C_embed("RESULTAT DE LA CHANGEMENT", to_print, config.Color_reponse)
+						adresse_m = &message
+						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 					}
 				}
-
 			}
 		}
 	}
@@ -473,66 +513,65 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if StartWith(m.Content, "report") {
-		if !admin {
-			// message := other.C_embed("ERROR", "```Vous n'etes pas dans le bon salon pour faire cette commande```", config.Color_error)
-			// adresse_m := &message
-			// _, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-		} else {
-			splited := other.Splitdot(m.Content, " -")
-			if len(splited) <= 4 {
-				message := other.C_embed("ERROR", "```argument incorrecte pour la commande \"remove\"\n\n      ->utilisation : remove -t {type} -e {etudiant (nom prenom , prenom nom)} -v {valeur}```", config.Color_error)
-				adresse_m := &message
-				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-			} else {
+		// if !admin {
+		// 	// message := other.C_embed("ERROR", "```Vous n'etes pas dans le bon salon pour faire cette commande```", config.Color_error)
+		// 	// adresse_m := &message
+		// 	// _, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// } else {
+		// 	splited := other.Splitdot(m.Content, " -")
+		// 	if len(splited) <= 4 {
+		// 		message := other.C_embed("ERROR", "```argument incorrecte pour la commande \"remove\"\n\n      ->utilisation : remove -t {type} -e {etudiant (nom prenom , prenom nom)} -v {valeur}```", config.Color_error)
+		// 		adresse_m := &message
+		// 		_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 	} else {
 
-				all_stud, _ := config.ReadApi()
-				all_logs := config.ReadLogs()
-				all_logs, all_stud, indexEtud := data.AddLog(m.Content, all_stud, all_logs)
+		// 		all_stud, _ := config.ReadApi()
+		// 		all_logs := config.ReadLogs()
+		// 		all_logs, all_stud, indexEtud := data.AddLog(m.Content, all_stud, all_logs)
 
-				if all_logs != nil && all_stud != nil {
-					fmt.Printf("all_logs[indexEtud].Log: %v\n", all_logs[indexEtud].Log)
-					if indexEtud == -1 {
-						message := other.C_embed("ERROR", "```erreur de la fonction```", config.Color_error)
-						adresse_m := &message
-						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-					} else {
-						file, err := json.Marshal(all_stud)
-						ioutil.WriteFile("./ApiData/api.json", file, 0777)
-						if err != nil {
-							message := other.C_embed("ERROR", "```l'ecriture dans le fichier api.json a échoué```", config.Color_error)
-							adresse_m := &message
-							_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-						} else {
-							file, err := json.Marshal(all_logs)
-							ioutil.WriteFile("./ApiData/logsGeneral.json", file, 0777)
+		// 		if all_logs != nil && all_stud != nil {
+		// 			if len(indexEtud) {
+		// 				message := other.C_embed("ERROR", "```erreur de la fonction```", config.Color_error)
+		// 				adresse_m := &message
+		// 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 			} else {
+		// 				file, err := json.Marshal(all_stud)
+		// 				ioutil.WriteFile("./ApiData/api.json", file, 0777)
+		// 				if err != nil {
+		// 					message := other.C_embed("ERROR", "```l'ecriture dans le fichier api.json a échoué```", config.Color_error)
+		// 					adresse_m := &message
+		// 					_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 				} else {
+		// 					file, err := json.Marshal(all_logs)
+		// 					ioutil.WriteFile("./ApiData/logsGeneral.json", file, 0777)
 
-							if err != nil {
-								message := other.C_embed("ERROR", "```l'ecriture dans le fichier logsGeneral.json a échoué```", config.Color_error)
-								adresse_m := &message
-								_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-							} else {
-								message := other.C_embed("ECRITURE DANS LES LOGS", "```\nétudiant affecté par les logs :\n\n"+all_stud[indexEtud].Prenom+" "+all_stud[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud[indexEtud].Point)+"\n   ->Guilde: "+all_stud[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud[indexEtud].Credit)+"```", config.Color_reponse)
-								adresse_m := &message
-								_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-								gitmanage.Commit(m.Content)
-							}
-						}
-					}
-				} else {
-					if indexEtud == -1 {
-						message := other.C_embed("ERROR", "```étudiant introuvable```", config.Color_error)
-						adresse_m := &message
-						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-					} else {
-						message := other.C_embed("ERROR", "```erreur dans la commande report\nexemple d'utilisation:\n\t-> $:report -e Gomis kwency -t credit -c remove -d c'est absenté du cours pendant 3h -m Paul -v 2```", config.Color_error)
-						adresse_m := &message
-						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
-					}
+		// 					if err != nil {
+		// 						message := other.C_embed("ERROR", "```l'ecriture dans le fichier logsGeneral.json a échoué```", config.Color_error)
+		// 						adresse_m := &message
+		// 						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 					} else {
+		// 						message := other.C_embed("ECRITURE DANS LES LOGS", "```\nétudiant affecté par les logs :\n\n"+all_stud[indexEtud].Prenom+" "+all_stud[indexEtud].Nom+" \n   ->ID: "+strconv.Itoa(indexEtud)+"\n   ->Point total: "+strconv.Itoa(all_stud[indexEtud].Point)+"\n   ->Guilde: "+all_stud[indexEtud].Guild+"\n   ->Credit: "+strconv.Itoa(all_stud[indexEtud].Credit)+"```", config.Color_reponse)
+		// 						adresse_m := &message
+		// 						_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 						gitmanage.Commit(m.Content)
+		// 					}
+		// 				}
+		// 			}
+		// 		} else {
+		// 			if indexEtud == -1 {
+		// 				message := other.C_embed("ERROR", "```étudiant introuvable```", config.Color_error)
+		// 				adresse_m := &message
+		// 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 			} else {
+		// 				message := other.C_embed("ERROR", "```erreur dans la commande report\nexemple d'utilisation:\n\t-> $:report -e Gomis kwency -t credit -c remove -d c'est absenté du cours pendant 3h -m Paul -v 2```", config.Color_error)
+		// 				adresse_m := &message
+		// 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
+		// 			}
 
-				}
+		// 		}
 
-			}
-		}
+		// 	}
+		// }
 	}
 }
 

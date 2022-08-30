@@ -3,8 +3,6 @@ package main
 import (
 	"golang-discord-bot/bot"
 	"golang-discord-bot/config"
-	"golang-discord-bot/page"
-	"net/http"
 
 	//"golang-discord-bot/data"
 	//"golang-discord-bot/gitmanage"
@@ -20,9 +18,7 @@ func main() {
 		log.Fatal(err)
 		return
 	} else {
-		http.HandleFunc("/", page.ViewHandler)
-		go http.ListenAndServe(":3000", nil)
-		go bot.Run()
+		bot.Run()
 		<-make(chan struct{})
 
 		return

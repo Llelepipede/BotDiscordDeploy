@@ -18,22 +18,20 @@ var BotID string
 var goBot *discordgo.Session
 
 func Run() {
-
 	// create bot session
 	goBot, err := discordgo.New("Bot " + config.Token)
 	if err != nil {
 		log.Fatal(err.Error())
 		return
 	}
-
 	// make the bot a user
 	user, err := goBot.User("@me")
 	if err != nil {
+		fmt.Printf("user: %v\n", user)
 		log.Fatal(err.Error())
 		return
 	}
 	config.Aide()
-
 	BotID = user.ID
 	goBot.AddHandler(messageHandler)
 	err = goBot.Open()
@@ -84,7 +82,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					embed_message, _ := s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 
 					log.Info("envoie des donnée a l'api")
-					err := config.UpdateStud(all_stud)
+					err := config.UpdateStud(all_stud, indexEtud)
 					log.Info("envoie des donnée a l'api fini")
 					if err != nil {
 
@@ -125,6 +123,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 	}
+
 	if StartWith(m.Content, "remove") {
 		if !admin {
 			// message := other.C_embed("ERROR", "```Vous n'etes pas dans le bon salon pour faire cette commande```", config.Color_error)
@@ -151,7 +150,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					embed_message, _ := s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 
 					log.Info("envoie des donnée a l'api")
-					err := config.UpdateStud(all_stud)
+					err := config.UpdateStud(all_stud, indexEtud)
 					log.Info("envoie des donnée a l'api fini")
 					if err != nil {
 
@@ -285,7 +284,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					embed_message, _ := s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 
 					log.Info("envoie des donnée a l'api")
-					err := config.UpdateStud(all_stud)
+					err := config.UpdateStud(all_stud, indexEtud)
 					log.Info("envoie des donnée a l'api fini")
 
 					if err != nil {
@@ -524,11 +523,9 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 		adresse_m := &message
 		// 		_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 		// 	} else {
-
 		// 		all_stud, _ := config.ReadApi()
 		// 		all_logs := config.ReadLogs()
 		// 		all_logs, all_stud, indexEtud := data.AddLog(m.Content, all_stud, all_logs)
-
 		// 		if all_logs != nil && all_stud != nil {
 		// 			if len(indexEtud) {
 		// 				message := other.C_embed("ERROR", "```erreur de la fonction```", config.Color_error)
@@ -544,7 +541,6 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 				} else {
 		// 					file, err := json.Marshal(all_logs)
 		// 					ioutil.WriteFile("./ApiData/logsGeneral.json", file, 0777)
-
 		// 					if err != nil {
 		// 						message := other.C_embed("ERROR", "```l'ecriture dans le fichier logsGeneral.json a échoué```", config.Color_error)
 		// 						adresse_m := &message
@@ -567,9 +563,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 				adresse_m := &message
 		// 				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, adresse_m)
 		// 			}
-
 		// 		}
-
 		// 	}
 		// }
 	}

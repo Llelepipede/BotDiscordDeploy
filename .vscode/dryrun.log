@@ -1,0 +1,6 @@
+make.exe --dry-run --always-make --keep-going --print-directory
+make: Entering directory 'c:/Users/pches/Desktop/mentor_repo/guildManager'
+make: Leaving directory 'c:/Users/pches/Desktop/mentor_repo/guildManager'
+ 
+makefile:6: *** missing separator.  Stop.
+

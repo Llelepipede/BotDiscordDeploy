@@ -153,6 +153,7 @@ func Find_Guild(in []dataStruct.Complete_Stud) ([]dataStruct.Guild, error) {
 	}
 	return ret, nil
 }
+
 func List_Guild(allGuild []dataStruct.Guild) string {
 	to_string := ""
 	for _, v := range allGuild {
